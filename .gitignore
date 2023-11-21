@@ -1,0 +1,18 @@
+# Virtual Environment
+.venv
+
+# IDE
+.idea
+.vscode
+
+# Build and Cache Files
+dist
+__pycache__
+.pytest_cache
+.ruff_cache
+
+# Environment Variables
+.env
+
+# Coverage Report
+.coverage
