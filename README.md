@@ -40,3 +40,4 @@ my_function(12)
 ## TODO
 - [ ] Docs
 - [ ] Support `Annotated` type-hint injection
+- [ ] Precommit
