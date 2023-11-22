@@ -7,7 +7,7 @@
 ## Usage
 
 ```python
-from fastdependency import Container, Depends
+from fastdependency import Container, Depends, inject
 
 
 # Define your default global container class.
@@ -23,7 +23,7 @@ Container.set_default_container(MyContainer())
 def username() -> str:
     return 'mahdi'
 
-
+@inject
 def my_function(
         param: int,
         username=Depends(username),  # Gets it from function.
