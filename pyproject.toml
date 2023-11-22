@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastdependency"
-version = "0.1.0"
+version = "0.2.0"
 description = "Dependency Injection Library"
 repository = "https://github.com/mahs4d/fastdependency"
 authors = ["Mahdi Sadeghi <mahdi74sadeghi@gmail.com>"]

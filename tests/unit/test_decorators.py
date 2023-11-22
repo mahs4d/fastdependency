@@ -1,162 +1,91 @@
-from typing import Annotated
+import random
 
-import pytest
-from fastdependency.container import Container
 from fastdependency.decorators import inject, singleton
-from fastdependency.resolvables import (
-    FunctionBasedResolvable,
-    NameBasedResolvable,
-    Resolvable,
-)
+from fastdependency.resolvables import FunctionBasedResolvable
 
 
-class StubContainer(Container):
-    def __init__(self):
-        self._i = 0
-        self._j = 0
-
-    def dep_a(self) -> str:
-        return "a"
-
-    def dep_b(self) -> str:
-        return "b"
-
+def test_singleton() -> None:
     @singleton
-    def dep_singleton(self) -> int:
-        self._i += 1
-        return self._i
+    def dep_singleton() -> int:
+        return random.randint(1, 99999999)
 
-    def dep_not_singleton(self) -> int:
-        self._j += 1
-        return self._j
+    a = FunctionBasedResolvable(dep_singleton).resolve()
+    b = FunctionBasedResolvable(dep_singleton).resolve()
 
-
-@pytest.fixture(name="container")
-def fixture_container() -> StubContainer:
-    return StubContainer()
-
-
-def test_singleton(container: StubContainer) -> None:
-    a = FunctionBasedResolvable(container.dep_singleton).resolve(container=container)
-    b = FunctionBasedResolvable(container.dep_singleton).resolve(container=container)
     assert a == b
 
 
-def test_not_singleton(container: StubContainer) -> None:
-    a = FunctionBasedResolvable(container.dep_not_singleton).resolve(
-        container=container,
-    )
-    b = FunctionBasedResolvable(container.dep_not_singleton).resolve(
-        container=container,
-    )
+def test_not_singleton() -> None:
+    def dep_not_singleton() -> int:
+        return random.randint(1, 99999999)
+
+    a = FunctionBasedResolvable(dep_not_singleton).resolve()
+    b = FunctionBasedResolvable(dep_not_singleton).resolve()
+
     assert a != b
 
 
-def test_inject_sync(container: StubContainer) -> None:
-    Container.set_default_container(container=container)
-
+def test_inject_sync() -> None:
     @inject
     def fn(
-        x: int,
-        y: str = "y",
-        a: Annotated[Resolvable, str] = FunctionBasedResolvable(container.dep_a),
-        b: Annotated[Resolvable, str] = NameBasedResolvable("dep_b"),
-        z: int = 2,
-        single1: Annotated[Resolvable, int] = FunctionBasedResolvable(
-            container.dep_singleton,
-        ),
-        single2: Annotated[Resolvable, int] = FunctionBasedResolvable(
-            container.dep_singleton,
-        ),
+        arg1: int,
+        arg2: str = "y",
+        dep_a: str = FunctionBasedResolvable(lambda: "a"),
     ) -> None:
-        assert x == 1
-        assert y == "y"
-        assert a == "a"
-        assert b == "b"
-        assert z == 2
-        assert single1 == single2
+        assert arg1 == 1
+        assert arg2 == "y"
+        assert dep_a == "a"
 
     fn(1)
-    fn(x=1, z=2)
+    fn(arg1=1)
 
 
-async def test_inject_async(container: StubContainer) -> None:
-    Container.set_default_container(container=container)
-
+async def test_inject_async() -> None:
     @inject
     async def fn(
-        x: int,
-        y: str = "y",
-        a: Annotated[Resolvable, str] = FunctionBasedResolvable(container.dep_a),
-        b: Annotated[Resolvable, str] = NameBasedResolvable("dep_b"),
-        z: int = 2,
-        single1: Annotated[Resolvable, int] = FunctionBasedResolvable(
-            container.dep_singleton,
-        ),
-        single2: Annotated[Resolvable, int] = FunctionBasedResolvable(
-            container.dep_singleton,
-        ),
+        arg1: int,
+        arg2: str = "y",
+        dep_a: str = FunctionBasedResolvable(lambda: "a"),
     ) -> None:
-        assert x == 1
-        assert y == "y"
-        assert a == "a"
-        assert b == "b"
-        assert z == 2
-        assert single1 == single2
+        assert arg1 == 1
+        assert arg2 == "y"
+        assert dep_a == "a"
 
     await fn(1)
-    await fn(x=1, z=2)
+    await fn(arg1=1)
 
 
-def test_inject_override(container: StubContainer) -> None:
-    Container.set_default_container(container=container)
-
+def test_inject_override() -> None:
     @inject
     def fn(
-        x: int,
-        y: str = "y",
-        a: Annotated[Resolvable, str] = FunctionBasedResolvable(container.dep_a),
-        b: Annotated[Resolvable, str] = NameBasedResolvable("dep_b"),
-        z: int = 2,
-        single1: Annotated[Resolvable, int] = FunctionBasedResolvable(
-            container.dep_singleton,
-        ),
-        single2: Annotated[Resolvable, int] = FunctionBasedResolvable(
-            container.dep_singleton,
-        ),
+        arg1: int,
+        arg2: str = "y",
+        dep_a: str = FunctionBasedResolvable(lambda: "a"),
+        dep_b: str = FunctionBasedResolvable(lambda: "b"),
     ) -> None:
-        assert x == 1
-        assert y == "y"
-        assert a == "OVERRIDE"
-        assert b == "b"
-        assert z == 2
-        assert single1 == single2
+        assert arg1 == 1
+        assert arg2 == "y"
+        assert dep_a == "OVERRIDE"
+        assert dep_b == "b"
 
     fn(1, "y", "OVERRIDE")
-    fn(x=1, a="OVERRIDE")
+    fn(arg1=1, dep_a="OVERRIDE")
 
 
-def test_inject_varargs(container: StubContainer) -> None:
-    Container.set_default_container(container=container)
-
+def test_inject_varargs() -> None:
     @inject
     def fn(
         *args,
-        a: Annotated[Resolvable, str] = FunctionBasedResolvable(container.dep_a),
-        b: Annotated[Resolvable, str] = NameBasedResolvable("dep_b"),
-        z: int = 2,
-        single1: Annotated[Resolvable, int] = FunctionBasedResolvable(container.dep_singleton),
-        single2: Annotated[Resolvable, int] = FunctionBasedResolvable(container.dep_singleton),
+        dep_a: str = FunctionBasedResolvable(lambda: "a"),
+        dep_b: str = FunctionBasedResolvable(lambda: "b"),
         **kwargs,
     ) -> None:
         assert args[0] == 1
         assert args[1] == "y"
-        assert a == "a"
-        assert b == "b"
-        assert z == 2
-        assert single1 == single2
+        assert dep_a == "a"
+        assert dep_b == "b"
         assert kwargs == {
-            "w": "w",
+            "arg3": "z",
         }
 
-    fn(1, "y", z=2, w="w")
+    fn(1, "y", arg3="z")

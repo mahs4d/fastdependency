@@ -7,27 +7,22 @@
 ## Usage
 
 ```python
-from fastdependency import Container, Depends, inject
-
-
-# Define your default global container class.
-class MyContainer(Container):
-    def lock_password(self) -> str:
-        return "123**456"
-
-
-# Create an instance of your container and set it as default.
-Container.set_default_container(MyContainer())
+from fastdependency import Depends, inject
 
 
 def username() -> str:
     return 'mahdi'
 
+
+def password() -> str:
+    return '123***456'
+
+
 @inject
 def my_function(
         param: int,
-        username=Depends(username),  # Gets it from function.
-        password=Depends('lock_password'),  # Gets it from container.
+        username: str = Depends(username),  # Gets it from function.
+        password: str = Depends(password),  # Gets it from container.
 ):
     print(param)
     print(username)
@@ -38,6 +33,5 @@ my_function(12)
 ```
 
 ## TODO
-- [ ] Docs
-- [ ] Support `Annotated` type-hint injection
+- [ ] Full Docs
 - [ ] Precommit

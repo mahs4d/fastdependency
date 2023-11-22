@@ -1,13 +1,7 @@
 import pytest
 from fastdependency.exceptions import UnResolvableDependencyError
-from fastdependency.resolvables import FunctionBasedResolvable, NameBasedResolvable
+from fastdependency.resolvables import FunctionBasedResolvable
 from fastdependency.utils import Depends
-
-
-def test_depends_with_name() -> None:
-    resolvable = Depends("dep_a")
-    assert isinstance(resolvable, NameBasedResolvable)
-    assert resolvable.dep_name == "dep_a"
 
 
 def test_depends_with_function() -> None:
